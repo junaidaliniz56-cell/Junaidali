@@ -3,7 +3,7 @@ from telebot import types
 from collections import defaultdict
 
 BOT_TOKEN = "8099789813:AAE1wYXxmU_auul3Lnt-fko_7kVyWwSln6Y"
-ADMINS = [7011937754. 8191178194]
+ADMINS = [7011937754.8191178194]
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
 
