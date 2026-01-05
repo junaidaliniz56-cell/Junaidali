@@ -77,18 +77,17 @@ def show_countries(cid):
             f"{flag(c)} {c} ({len(NUMBERS[c])})",
             callback_data=f"country|{c}"
         ))
-    kb.add(types.InlineKeyboardButton("🔄 Change Country", callback_data="change"))
     bot.send_message(cid, "🌍 <b>Select Country</b>", reply_markup=kb)
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("country|"))
 def pick_country(c):
-    country = c.data.split("|")[1]
+    country = c.data.split("|")[4]
     num = NUMBERS[country].pop(0)
     save(DATA_FILE, NUMBERS)
 
     kb = types.InlineKeyboardMarkup()
     kb.add(types.InlineKeyboardButton("🔄 Change Number", callback_data=f"country|{country}"))
-    kb.add(types.InlineKeyboardButton("📢 OTP Group", url="8546188939:AAGCchjT0fnBRmgeKVz87S1i7cIkhVOfZHI"))
+    kb.add(types.InlineKeyboardButton("📱 OTP Group", url="8546188939:AAGCchjT0fnBRmgeKVz87S1i7cIkhVOfZHI"))
     kb.add(types.InlineKeyboardButton("🌍 Change Country", callback_data="change"))
 
     bot.edit_message_text(
