@@ -2,7 +2,7 @@ import telebot, os, json
 from telebot import types
 from collections import defaultdict
 
-BOT_TOKEN = "8099789813:AAE1wYXxmU_auul3Lnt-fko_7kVyWwSln6Y"
+BOT_TOKEN = "8546188939:AAGCchjT0fnBRmgeKVz87S1i7cIkhVOfZHI"
 ADMINS = [7011937754]
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
@@ -88,7 +88,7 @@ def pick_country(c):
 
     kb = types.InlineKeyboardMarkup()
     kb.add(types.InlineKeyboardButton("🔄 Change Number", callback_data=f"country|{country}"))
-    kb.add(types.InlineKeyboardButton("📢 OTP Group", url="https://t.me/OtpXGroup"))
+    kb.add(types.InlineKeyboardButton("📢 OTP Group", url="8546188939:AAGCchjT0fnBRmgeKVz87S1i7cIkhVOfZHI"))
     kb.add(types.InlineKeyboardButton("🌍 Change Country", callback_data="change"))
 
     bot.edit_message_text(
