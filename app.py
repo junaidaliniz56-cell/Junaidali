@@ -1,14 +1,15 @@
 from telegram import Update
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler,
+    ApplicationBuilder,
+    CommandHandler,
     ContextTypes
 )
 import sqlite3
 import os
 
 # ================= CONFIG =================
-TOKEN = os.getenv("8380662421:AAEP9BOevEPJ5CDDwYesgbkNns4bi4bwrH0")
-ADMINS = [7011937754]  # 👈 APNA TELEGRAM ID DALO
+TOKEN = os.getenv("8380662421:AAEP9BOevEPJ5CDDwYesgbkNns4bi4bwrH0")  # Railway variable
+ADMINS = [7011937754]  # 👈 apna numeric Telegram ID yahan daalo
 METHOD_COST = 7
 INVITE_REWARD = 1
 
@@ -16,21 +17,27 @@ INVITE_REWARD = 1
 conn = sqlite3.connect("database.db", check_same_thread=False)
 c = conn.cursor()
 
-c.execute("""CREATE TABLE IF NOT EXISTS users (
+c.execute("""
+CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     points INTEGER DEFAULT 0,
     referred_by INTEGER
-)""")
+)
+""")
 
-c.execute("""CREATE TABLE IF NOT EXISTS methods (
+c.execute("""
+CREATE TABLE IF NOT EXISTS methods (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT,
     content TEXT
-)""")
+)
+""")
 
-c.execute("""CREATE TABLE IF NOT EXISTS channels (
+c.execute("""
+CREATE TABLE IF NOT EXISTS channels (
     channel TEXT
-)""")
+)
+""")
 
 conn.commit()
 
@@ -45,10 +52,9 @@ def get_points(uid):
 
 async def check_join(uid, bot):
     c.execute("SELECT channel FROM channels")
-    channels = c.fetchall()
-    for ch in channels:
+    for (ch,) in c.fetchall():
         try:
-            m = await bot.get_chat_member(ch[0], uid)
+            m = await bot.get_chat_member(ch, uid)
             if m.status not in ["member", "administrator", "creator"]:
                 return False
         except:
@@ -65,14 +71,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ref = int(args[0]) if args else None
         c.execute("INSERT INTO users(user_id, referred_by) VALUES (?,?)", (uid, ref))
         if ref:
-            c.execute("UPDATE users SET points = points + ? WHERE user_id=?", (INVITE_REWARD, ref))
+            c.execute(
+                "UPDATE users SET points = points + ? WHERE user_id=?",
+                (INVITE_REWARD, ref)
+            )
         conn.commit()
 
     await update.message.reply_text(
         f"👋 Welcome!\n\n"
         f"💰 Points: {get_points(uid)}\n"
         f"👥 Invite = +{INVITE_REWARD} Point\n"
-        f"🧠 Method Cost = {METHOD_COST} Points"
+        f"🧠 Method Cost = {METHOD_COST} Points\n\n"
+        f"/account – My Account\n"
+        f"/methods – Method List"
     )
 
 # ================= ACCOUNT =================
@@ -81,7 +92,7 @@ async def account(update: Update, context: ContextTypes.DEFAULT_TYPE):
     link = f"https://t.me/{context.bot.username}?start={uid}"
 
     await update.message.reply_text(
-        f"👤 ID: {uid}\n"
+        f"👤 User ID: {uid}\n"
         f"💰 Points: {get_points(uid)}\n\n"
         f"🔗 Referral Link:\n{link}"
     )
@@ -106,11 +117,15 @@ async def getmethod(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
 
     if not await check_join(uid, context.bot):
-        await update.message.reply_text("❗ Join all channels first")
+        await update.message.reply_text("❗ Please join all channels first")
         return
 
     if get_points(uid) < METHOD_COST:
         await update.message.reply_text("❌ Not enough points")
+        return
+
+    if not context.args:
+        await update.message.reply_text("❗ Use: /getmethod ID")
         return
 
     mid = int(context.args[0])
@@ -121,7 +136,10 @@ async def getmethod(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Method not found")
         return
 
-    c.execute("UPDATE users SET points = points - ? WHERE user_id=?", (METHOD_COST, uid))
+    c.execute(
+        "UPDATE users SET points = points - ? WHERE user_id=?",
+        (METHOD_COST, uid)
+    )
     conn.commit()
 
     await update.message.reply_text(f"✅ Method Unlocked:\n\n{row[0]}")
@@ -130,13 +148,21 @@ async def getmethod(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def addmethod(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
         return
-    data = update.message.text.split("|")
-    c.execute("INSERT INTO methods(title, content) VALUES (?,?)", (data[1], data[2]))
+    data = update.message.text.split("|", 2)
+    if len(data) < 3:
+        await update.message.reply_text("Use:\n/addmethod | Title | Content")
+        return
+    c.execute(
+        "INSERT INTO methods(title, content) VALUES (?,?)",
+        (data[1].strip(), data[2].strip())
+    )
     conn.commit()
     await update.message.reply_text("✅ Method Added")
 
 async def addchannel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
+        return
+    if not context.args:
         return
     c.execute("INSERT INTO channels VALUES (?)", (context.args[0],))
     conn.commit()
@@ -162,11 +188,11 @@ async def cutpoints(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
         return
-    msg = update.message.text.replace("/broadcast", "")
+    msg = update.message.text.replace("/broadcast", "").strip()
     c.execute("SELECT user_id FROM users")
-    for u in c.fetchall():
+    for (u,) in c.fetchall():
         try:
-            await context.bot.send_message(u[0], msg)
+            await context.bot.send_message(u, msg)
         except:
             pass
     await update.message.reply_text("✅ Broadcast Sent")
@@ -175,12 +201,12 @@ async def fwd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
         return
     c.execute("SELECT user_id FROM users")
-    for u in c.fetchall():
+    for (u,) in c.fetchall():
         try:
             await context.bot.forward_message(
-                u[0],
-                update.message.chat_id,
-                update.message.message_id
+                chat_id=u,
+                from_chat_id=update.message.chat_id,
+                message_id=update.message.message_id
             )
         except:
             pass
