@@ -8,9 +8,9 @@ import sqlite3
 import os
 
 # ================= CONFIG =================
-TOKEN =
-("8380662421:AAEP9BOevEPJ5CDDwYesgbkNns4bi4bwrH0")
-ADMINS = [7011937754]  # 👈 apna numeric Telegram ID yahan daalo
+TOKEN = 
+"8380662421:AAEP9BOevEPJ5CDDwYesgbkNns4bi4bwrH0"
+ADMINS = [7011937754]
 METHOD_COST = 7
 INVITE_REWARD = 1
 
