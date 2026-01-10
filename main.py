@@ -11,8 +11,6 @@ bot = Bot(token=BOT_TOKEN)
 
 GROUP_IDS = [
     -1003528245594,
-    -1002076058429,
-  
 ]
 
 API_URLS = [
@@ -24,7 +22,6 @@ API_URLS = [
     "https://juanidniz-pw-orpin.vercel.app/api/tempotps?type=sms",
     "https://teamlegend-gamma.vercel.app//api/nmp?type=sms",
     "https://teamlegend-gamma.vercel.app/api/dgroup?type=sms",
-    "http://147.135.212.197/crapi/st/viewstats?token=RVdWRElBUzRGcW9WeneNcmd2cGV9ZJd8e29PVlyPcFxeamxSgWVXfw==&records=10",
 ]
 
 def fetch_latest_otp(api_url):
